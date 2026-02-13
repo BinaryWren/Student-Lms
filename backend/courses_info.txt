@@ -1,0 +1,3 @@
+C: Neural Networks, I: auto_instructor (INSTRUCTOR)
+C: Cyber Security, I: None
+C: Adcance webdevelopment, I: None

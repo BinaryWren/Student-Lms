@@ -1,0 +1,2 @@
+INSTITUTE_ADMIN|admin_tech|True
+INSTRUCTOR|instr_john|True

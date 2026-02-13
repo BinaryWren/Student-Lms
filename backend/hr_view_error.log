@@ -1,0 +1,15 @@
+'UserManager' object has no attribute 'make_random_password'
+Traceback (most recent call last):
+  File "D:\Root\Lms\backend\hr\views.py", line 34, in perform_create
+    user = serializer.save()
+  File "C:\Users\LENOVO\AppData\Local\Programs\Python\Python314\Lib\site-packages\rest_framework\serializers.py", line 210, in save
+    self.instance = self.create(validated_data)
+                    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\AppData\Local\Programs\Python\Python314\Lib\contextlib.py", line 85, in inner
+    return func(*args, **kwds)
+  File "D:\Root\Lms\backend\hr\serializers.py", line 75, in create
+    raise e
+  File "D:\Root\Lms\backend\hr\serializers.py", line 57, in create
+    password = User.objects.make_random_password(length=10)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'UserManager' object has no attribute 'make_random_password'

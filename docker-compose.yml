@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: lms
+      POSTGRES_USER: lms_user
+      POSTGRES_PASSWORD: lms_password
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DATABASE_URL=postgres://lms_user:lms_password@db:5432/lms
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Override for dev to use simple run dev, or use prod build?
+    # For "local dev", usually we want HMR. 
+    # But for "deployment", we want build. 
+    # Let's map volume for Dev HMR if needed, but defaults to prod build from Dockerfile.
+    # To enable dev mode:
+    # command: npm run dev
+    # volumes: [ .:/app ]
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+
+  # Judicial System (Judge0)
+  # Simplified configuration for Judge0 CE
+  judge0-server:
+    image: judge0/judge0:1.13.0
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    environment:
+      - JUDGE0_Auth_Token=
+      - REDIS_PASSWORD=
+    depends_on:
+      - judge0-redis
+      - judge0-db
+
+  judge0-workers:
+    image: judge0/judge0:1.13.0
+    command: [ "./scripts/workers" ]
+    privileged: true
+    depends_on:
+      - judge0-redis
+      - judge0-db
+
+  judge0-db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0password
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0_db_data:/var/lib/postgresql/data
+
+  judge0-redis:
+    image: redis:6.0
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - judge0_redis_data:/data
+
+volumes:
+  postgres_data:
+  judge0_db_data:
+  judge0_redis_data:
